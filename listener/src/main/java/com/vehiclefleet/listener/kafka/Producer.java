@@ -1,6 +1,5 @@
 package com.vehiclefleet.listener.kafka;
 
-import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
@@ -16,27 +15,20 @@ import java.util.Map;
 
 @Configuration
 public class Producer {
+
     final KafkaProperties kafkaProperties;
+
     public Producer(KafkaProperties kafkaProperties) {
         this.kafkaProperties = kafkaProperties;
     }
-    @Bean
-    public Map<String, Object> producerConfiguration() {
-        Map<String, Object> properties = new HashMap<>(kafkaProperties.buildProducerProperties());
-        properties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
-        properties.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
-        return properties;
-    }
-    @Bean
-    ProducerFactory<String, Object> producerFactory() {
-        return new DefaultKafkaProducerFactory<>(producerConfiguration());
-    }
+
     @Bean
     KafkaTemplate<String, Object> kafkaTemplate() {
-        return new KafkaTemplate<>(producerFactory());
-    }
-    @Bean
-    public NewTopic topic() {
-        return new NewTopic("fleet-update-events", 1, (short) 1);
+        Map<String, Object> properties = new HashMap<>(kafkaProperties.buildProducerProperties());
+        properties.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "kafka:9092");
+        properties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+        properties.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
+        ProducerFactory<String, Object> producerFactory = new DefaultKafkaProducerFactory<>(properties);
+        return new KafkaTemplate<>(producerFactory);
     }
 }

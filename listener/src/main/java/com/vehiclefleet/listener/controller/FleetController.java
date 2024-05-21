@@ -3,6 +3,7 @@ package com.vehiclefleet.listener.controller;
 import com.vehiclefleet.listener.models.FleetUpdateEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -23,6 +24,7 @@ public class FleetController {
     public FleetController(KafkaTemplate<String, Object> kafkaTemplate) {
         this.kafkaTemplate = kafkaTemplate;
     }
+
     @PostMapping
     public void update(@RequestBody FleetUpdateEvent event) {
         CompletableFuture<SendResult<String, Object>> future = this.kafkaTemplate.send("fleet-update-events", event);
