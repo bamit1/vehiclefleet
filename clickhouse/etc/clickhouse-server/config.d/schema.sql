@@ -3,7 +3,7 @@ CREATE DATABASE IF NOT EXISTS fleet;
 USE fleet;
 
 CREATE TABLE IF NOT EXISTS fleet_events (
-    vehicleId Int32,
+    vehicleId String,
     lat Float64,
     lng Float64,
     speed Int32,
@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS fleet_events (
 ) ENGINE = MergeTree ORDER BY (time, vehicleId);
 
 CREATE TABLE IF NOT EXISTS fleet_events_queue (
-    vehicleId Int32,
+    vehicleId String,
     lat Float64,
     lng Float64,
     speed Int32,

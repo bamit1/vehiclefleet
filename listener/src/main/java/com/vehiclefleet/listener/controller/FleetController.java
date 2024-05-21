@@ -29,7 +29,7 @@ public class FleetController {
     public void update(@RequestBody FleetUpdateEvent event) {
         CompletableFuture<SendResult<String, Object>> future = this.kafkaTemplate.send("fleet-update-events", event);
         try {
-            LOGGER.info("Published event to kafka with offset: {}", future.get().getRecordMetadata().offset());
+            LOGGER.info("Published event to kafka with offset: {} and message: {}", future.get().getRecordMetadata().offset(), event);
         } catch (InterruptedException | ExecutionException e) {
             LOGGER.error("Exception while sending event to kafka", e);
             throw new RuntimeException("Failed to send event to kafka!");

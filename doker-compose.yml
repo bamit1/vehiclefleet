@@ -64,8 +64,19 @@ services:
     container_name: grafana
     hostname: grafana
     volumes:
-      - ./grafana/etc/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
+      - ./grafana/etc/grafana/provisioning/datasources/clickhouse.yml:/etc/grafana/provisioning/datasources/clickhouse.yml
+      - ./grafana/etc/grafana/provisioning/dashboards/local.yml:/etc/grafana/provisioning/dashboards/local.yml
+      - ./grafana/var/lib/grafana/dashboards:/var/lib/grafana/dashboards
     ports:
       - "3000:3000"
     depends_on:
       - clickhouse
+
+  emitter:
+    build:
+      context: ./emitter/
+      dockerfile: Dockerfile
+    container_name: emitter
+    hostname: emitter
+    depends_on:
+      - grafana
