@@ -1,0 +1,71 @@
+version: '2.1'
+
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.3.2
+    container_name: zookeeper
+    hostname: zookeeper
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+
+
+  kafka:
+    image: confluentinc/cp-kafka:7.3.2
+    container_name: kafka
+    hostname: kafka
+    ports:
+      - "9092:9092"
+      - "29092:29092"
+    environment:
+      KAFKA_LISTENERS: INTERNAL://0.0.0.0:9092,EXTERNAL://0.0.0.0:29092
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:9092,EXTERNAL://localhost:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
+      KAFKA_LOG4J_LOGGERS: "kafka.controller=INFO,kafka.producer.async.DefaultEventHandler=INFO,state.change.logger=INFO"
+      KAFKA_AUTHORIZER_CLASS_NAME: kafka.security.authorizer.AclAuthorizer
+      KAFKA_ALLOW_EVERYONE_IF_NO_ACL_FOUND: "true"
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    depends_on:
+      - zookeeper
+
+  listener:
+    build:
+      context: ./listener/
+      dockerfile: Dockerfile
+    container_name: listener
+    hostname: listener
+    ports:
+      - "8081:8081"
+    depends_on:
+      - kafka
+
+  clickhouse:
+    image: clickhouse/clickhouse-server
+    user: "101:101"
+    container_name: clickhouse
+    hostname: clickhouse
+    volumes:
+      - ./clickhouse/etc/clickhouse-server/config.d/config.xml:/etc/clickhouse-server/config.d/config.xml
+      - ./clickhouse/etc/clickhouse-server/config.d/schema.sql:/tmp/clickhouse-server/schema.sql
+      - ./clickhouse/etc/clickhouse-server/users.d/users.xml:/etc/clickhouse-server/users.d/users.xml
+    ports:
+      - "8123:8123"
+      - "9000:9000"
+    depends_on:
+      - listener
+
+  grafana:
+    build:
+      context: ./grafana/
+      dockerfile: grafana.Dockerfile
+    container_name: grafana
+    hostname: grafana
+    volumes:
+      - ./grafana/etc/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
+    ports:
+      - "3000:3000"
+    depends_on:
+      - clickhouse
