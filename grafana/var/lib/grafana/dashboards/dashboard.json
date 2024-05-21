@@ -1,0 +1,688 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": 1,
+  "links": [],
+  "panels": [
+    {
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "PDEE91DDB90597936"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineStyle": {
+              "fill": "solid"
+            },
+            "lineWidth": 1,
+            "pointSize": 1,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "line"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "velocitykmh"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "legend": {
+          "calcs": [
+            "lastNotNull",
+            "max",
+            "min",
+            "mean"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "builderOptions": {
+            "aggregates": [],
+            "columns": [
+              {
+                "custom": false,
+                "name": "speed",
+                "type": "Int32"
+              },
+              {
+                "custom": false,
+                "name": "vehicleId",
+                "type": "String"
+              },
+              {
+                "hint": "time",
+                "name": "time",
+                "type": "DateTime"
+              }
+            ],
+            "database": "fleet",
+            "filters": [
+              {
+                "condition": "AND",
+                "filterType": "custom",
+                "hint": "time",
+                "key": "",
+                "operator": "IS ANYTHING",
+                "type": "datetime"
+              }
+            ],
+            "groupBy": [],
+            "limit": 1000,
+            "meta": {},
+            "mode": "aggregate",
+            "orderBy": [
+              {
+                "default": true,
+                "dir": "ASC",
+                "hint": "time",
+                "name": ""
+              }
+            ],
+            "queryType": "timeseries",
+            "table": "fleet_events"
+          },
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "PDEE91DDB90597936"
+          },
+          "editorType": "builder",
+          "format": 0,
+          "meta": {
+            "builderOptions": {
+              "aggregates": [],
+              "columns": [
+                {
+                  "custom": false,
+                  "name": "speed",
+                  "type": "Int32"
+                },
+                {
+                  "hint": "time",
+                  "name": "time",
+                  "type": "DateTime"
+                }
+              ],
+              "database": "fleet",
+              "filters": [
+                {
+                  "condition": "AND",
+                  "filterType": "custom",
+                  "hint": "time",
+                  "key": "",
+                  "operator": "IS ANYTHING",
+                  "type": "datetime"
+                }
+              ],
+              "groupBy": [],
+              "limit": 1000,
+              "meta": {},
+              "mode": "aggregate",
+              "orderBy": [
+                {
+                  "default": true,
+                  "dir": "ASC",
+                  "hint": "time",
+                  "name": ""
+                }
+              ],
+              "queryType": "timeseries",
+              "table": "fleet_events"
+            }
+          },
+          "pluginVersion": "4.0.7",
+          "queryType": "timeseries",
+          "rawSql": "SELECT time as time, speed, vehicleId FROM \"fleet\".\"fleet_events\" ORDER BY time ASC LIMIT 1000",
+          "refId": "A"
+        }
+      ],
+      "title": "Vehicle Speed",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "PDEE91DDB90597936"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineStyle": {
+              "fill": "solid"
+            },
+            "lineWidth": 1,
+            "pointSize": 1,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "line"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 20
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 0
+      },
+      "id": 2,
+      "options": {
+        "legend": {
+          "calcs": [
+            "lastNotNull",
+            "max",
+            "min",
+            "mean"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "builderOptions": {
+            "aggregates": [],
+            "columns": [
+              {
+                "custom": false,
+                "name": "vehicleId",
+                "type": "String"
+              },
+              {
+                "custom": false,
+                "name": "fuelLevel",
+                "type": "Int32"
+              },
+              {
+                "hint": "time",
+                "name": "time",
+                "type": "DateTime"
+              }
+            ],
+            "database": "fleet",
+            "filters": [
+              {
+                "condition": "AND",
+                "filterType": "custom",
+                "hint": "time",
+                "key": "",
+                "operator": "IS ANYTHING",
+                "type": "datetime"
+              }
+            ],
+            "groupBy": [],
+            "limit": 1000,
+            "meta": {},
+            "mode": "aggregate",
+            "orderBy": [
+              {
+                "default": true,
+                "dir": "ASC",
+                "hint": "time",
+                "name": ""
+              }
+            ],
+            "queryType": "timeseries",
+            "table": "fleet_events"
+          },
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "PDEE91DDB90597936"
+          },
+          "editorType": "builder",
+          "format": 0,
+          "meta": {
+            "builderOptions": {
+              "aggregates": [],
+              "columns": [
+                {
+                  "custom": false,
+                  "name": "speed",
+                  "type": "Int32"
+                },
+                {
+                  "hint": "time",
+                  "name": "time",
+                  "type": "DateTime"
+                }
+              ],
+              "database": "fleet",
+              "filters": [
+                {
+                  "condition": "AND",
+                  "filterType": "custom",
+                  "hint": "time",
+                  "key": "",
+                  "operator": "IS ANYTHING",
+                  "type": "datetime"
+                }
+              ],
+              "groupBy": [],
+              "limit": 1000,
+              "meta": {},
+              "mode": "aggregate",
+              "orderBy": [
+                {
+                  "default": true,
+                  "dir": "ASC",
+                  "hint": "time",
+                  "name": ""
+                }
+              ],
+              "queryType": "timeseries",
+              "table": "fleet_events"
+            }
+          },
+          "pluginVersion": "4.0.7",
+          "queryType": "timeseries",
+          "rawSql": "SELECT time as time, vehicleId, fuelLevel FROM \"fleet\".\"fleet_events\" ORDER BY time ASC LIMIT 1000",
+          "refId": "A"
+        }
+      ],
+      "title": "Vehicle Fuel Level",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "PDEE91DDB90597936"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineStyle": {
+              "fill": "solid"
+            },
+            "lineWidth": 1,
+            "pointSize": 1,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 8
+      },
+      "id": 3,
+      "options": {
+        "legend": {
+          "calcs": [
+            "lastNotNull",
+            "max",
+            "min",
+            "mean"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "builderOptions": {
+            "aggregates": [],
+            "columns": [
+              {
+                "custom": false,
+                "name": "vehicleId",
+                "type": "String"
+              },
+              {
+                "custom": false,
+                "name": "lat",
+                "type": "Float64"
+              },
+              {
+                "custom": false,
+                "name": "lng",
+                "type": "Float64"
+              },
+              {
+                "hint": "time",
+                "name": "time",
+                "type": "DateTime"
+              }
+            ],
+            "database": "fleet",
+            "filters": [
+              {
+                "condition": "AND",
+                "filterType": "custom",
+                "hint": "time",
+                "key": "",
+                "operator": "IS ANYTHING",
+                "type": "datetime"
+              }
+            ],
+            "groupBy": [],
+            "limit": 10000,
+            "meta": {},
+            "mode": "aggregate",
+            "orderBy": [
+              {
+                "default": true,
+                "dir": "ASC",
+                "hint": "time",
+                "name": ""
+              }
+            ],
+            "queryType": "timeseries",
+            "table": "fleet_events"
+          },
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "PDEE91DDB90597936"
+          },
+          "editorType": "builder",
+          "format": 0,
+          "hide": false,
+          "meta": {
+            "builderOptions": {
+              "aggregates": [],
+              "columns": [
+                {
+                  "custom": false,
+                  "name": "speed",
+                  "type": "Int32"
+                },
+                {
+                  "hint": "time",
+                  "name": "time",
+                  "type": "DateTime"
+                }
+              ],
+              "database": "fleet",
+              "filters": [
+                {
+                  "condition": "AND",
+                  "filterType": "custom",
+                  "hint": "time",
+                  "key": "",
+                  "operator": "IS ANYTHING",
+                  "type": "datetime"
+                }
+              ],
+              "groupBy": [],
+              "limit": 1000,
+              "meta": {},
+              "mode": "aggregate",
+              "orderBy": [
+                {
+                  "default": true,
+                  "dir": "ASC",
+                  "hint": "time",
+                  "name": ""
+                }
+              ],
+              "queryType": "timeseries",
+              "table": "fleet_events"
+            }
+          },
+          "pluginVersion": "4.0.7",
+          "queryType": "timeseries",
+          "rawSql": "SELECT time as time, vehicleId, lat, lng FROM \"fleet\".\"fleet_events\" ORDER BY time ASC LIMIT 10000",
+          "refId": "A"
+        }
+      ],
+      "title": "Distance Travelled",
+      "transformations": [
+        {
+          "id": "spatial",
+          "options": {
+            "action": "calculate",
+            "calculate": {
+              "calc": "distance"
+            },
+            "source": {
+              "latitude": "lat {vehicleId=\"Vehicle-1\"}",
+              "longitude": "lng {vehicleId=\"Vehicle-1\"}",
+              "mode": "coords"
+            }
+          }
+        },
+        {
+          "id": "spatial",
+          "options": {
+            "action": "calculate",
+            "calculate": {
+              "calc": "distance"
+            },
+            "source": {
+              "latitude": "lat {vehicleId=\"Vehicle-2\"}",
+              "longitude": "lat {vehicleId=\"Vehicle-2\"}",
+              "mode": "coords"
+            }
+          }
+        },
+        {
+          "id": "spatial",
+          "options": {
+            "action": "calculate",
+            "calculate": {
+              "calc": "distance"
+            },
+            "source": {
+              "latitude": "lat {vehicleId=\"Vehicle-3\"}",
+              "longitude": "lng Vehicle-3",
+              "mode": "coords"
+            }
+          }
+        },
+        {
+          "id": "spatial",
+          "options": {
+            "action": "calculate",
+            "calculate": {
+              "calc": "distance"
+            },
+            "source": {
+              "latitude": "lat {vehicleId=\"Vehicle-4\"}",
+              "longitude": "lng Vehicle-4",
+              "mode": "coords"
+            }
+          }
+        },
+        {
+          "id": "spatial",
+          "options": {
+            "action": "calculate",
+            "calculate": {
+              "calc": "distance"
+            },
+            "source": {
+              "latitude": "lat {vehicleId=\"Vehicle-5\"}",
+              "longitude": "lng Vehicle-5",
+              "mode": "coords"
+            }
+          }
+        }
+      ],
+      "type": "timeseries"
+    }
+  ],
+  "refresh": "",
+  "schemaVersion": 39,
+  "tags": [],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "2053-02-03T21:57:09.000Z",
+    "to": "2053-04-02T08:38:45.000Z"
+  },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "Fleet Dashboard",
+  "uid": "cdmeha57y4b9ce",
+  "version": 9,
+  "weekStart": ""
+}
