@@ -2,7 +2,6 @@ package com.vehiclefleet.models;
 
 import lombok.Data;
 
-import java.sql.Timestamp;
 
 @Data
 public class FleetUpdateEvent {
@@ -11,5 +10,5 @@ public class FleetUpdateEvent {
     private double lng;
     private int speed;
     private int fuelLevel;
-    private Timestamp time;
+    private long time;
 }
