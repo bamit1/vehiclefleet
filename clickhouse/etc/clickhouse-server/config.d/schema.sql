@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS fleet_events (
     speed Int32,
     fuelLevel Int32,
     time DateTime
+--    date
 ) ENGINE = MergeTree ORDER BY (time, vehicleId);
 
 CREATE TABLE IF NOT EXISTS fleet_events_queue (

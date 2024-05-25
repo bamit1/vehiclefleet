@@ -10,6 +10,19 @@ services:
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
 
+  redis:
+    image: redis:latest
+    restart: always
+    container_name: redis_container
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./var/lib/redis/data:/data
+      - ./etc/redis/redis.conf:/usr/local/etc/redis/redis.conf
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+      - REDIS_PORT=6379
+#      - REDIS_DATABASES=16
 
   kafka:
     image: confluentinc/cp-kafka:7.3.2
@@ -30,17 +43,6 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
     depends_on:
       - zookeeper
-
-  listener:
-    build:
-      context: ./listener/
-      dockerfile: Dockerfile
-    container_name: listener
-    hostname: listener
-    ports:
-      - "8081:8081"
-    depends_on:
-      - kafka
 
   clickhouse:
     image: clickhouse/clickhouse-server
@@ -71,6 +73,26 @@ services:
       - "3000:3000"
     depends_on:
       - clickhouse
+
+  listener:
+    build:
+      context: ./listener/
+      dockerfile: Dockerfile
+    container_name: listener
+    hostname: listener
+    ports:
+      - "8081:8081"
+    depends_on:
+      - kafka
+
+  executionservice:
+    build:
+      context: ./executionservice/
+      dockerfile: Dockerfile
+    container_name: executionservice
+    hostname: executionservice
+    depends_on:
+      - kafka
 
   emitter:
     build:
