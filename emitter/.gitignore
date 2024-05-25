@@ -31,8 +31,3 @@ build/
 
 ### VS Code ###
 .vscode/
-
-
-emitter/target/
-listener/target/
-executionservice/target/

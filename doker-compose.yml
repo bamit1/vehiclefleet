@@ -12,17 +12,13 @@ services:
 
   redis:
     image: redis:latest
-    restart: always
-    container_name: redis_container
+    container_name: redis
+    hostname: redis
     ports:
       - "6379:6379"
-    volumes:
-      - ./var/lib/redis/data:/data
-      - ./etc/redis/redis.conf:/usr/local/etc/redis/redis.conf
     environment:
       - ALLOW_EMPTY_PASSWORD=yes
       - REDIS_PORT=6379
-#      - REDIS_DATABASES=16
 
   kafka:
     image: confluentinc/cp-kafka:7.3.2
@@ -44,35 +40,35 @@ services:
     depends_on:
       - zookeeper
 
-  clickhouse:
-    image: clickhouse/clickhouse-server
-    user: "101:101"
-    container_name: clickhouse
-    hostname: clickhouse
-    volumes:
-      - ./clickhouse/etc/clickhouse-server/config.d/config.xml:/etc/clickhouse-server/config.d/config.xml
-      - ./clickhouse/etc/clickhouse-server/config.d/schema.sql:/tmp/clickhouse-server/schema.sql
-      - ./clickhouse/etc/clickhouse-server/users.d/users.xml:/etc/clickhouse-server/users.d/users.xml
-    ports:
-      - "8123:8123"
-      - "9000:9000"
-    depends_on:
-      - listener
-
-  grafana:
-    build:
-      context: ./grafana/
-      dockerfile: grafana.Dockerfile
-    container_name: grafana
-    hostname: grafana
-    volumes:
-      - ./grafana/etc/grafana/provisioning/datasources/clickhouse.yml:/etc/grafana/provisioning/datasources/clickhouse.yml
-      - ./grafana/etc/grafana/provisioning/dashboards/local.yml:/etc/grafana/provisioning/dashboards/local.yml
-      - ./grafana/var/lib/grafana/dashboards:/var/lib/grafana/dashboards
-    ports:
-      - "3000:3000"
-    depends_on:
-      - clickhouse
+#  clickhouse:
+#    image: clickhouse/clickhouse-server
+#    user: "101:101"
+#    container_name: clickhouse
+#    hostname: clickhouse
+#    volumes:
+#      - ./clickhouse/etc/clickhouse-server/config.d/config.xml:/etc/clickhouse-server/config.d/config.xml
+#      - ./clickhouse/etc/clickhouse-server/config.d/schema.sql:/tmp/clickhouse-server/schema.sql
+#      - ./clickhouse/etc/clickhouse-server/users.d/users.xml:/etc/clickhouse-server/users.d/users.xml
+#    ports:
+#      - "8123:8123"
+#      - "9000:9000"
+#    depends_on:
+#      - listener
+#
+#  grafana:
+#    build:
+#      context: ./grafana/
+#      dockerfile: grafana.Dockerfile
+#    container_name: grafana
+#    hostname: grafana
+#    volumes:
+#      - ./grafana/etc/grafana/provisioning/datasources/clickhouse.yml:/etc/grafana/provisioning/datasources/clickhouse.yml
+#      - ./grafana/etc/grafana/provisioning/dashboards/local.yml:/etc/grafana/provisioning/dashboards/local.yml
+#      - ./grafana/var/lib/grafana/dashboards:/var/lib/grafana/dashboards
+#    ports:
+#      - "3000:3000"
+#    depends_on:
+#      - clickhouse
 
   listener:
     build:
@@ -93,6 +89,7 @@ services:
     hostname: executionservice
     depends_on:
       - kafka
+      - redis
 
   emitter:
     build:
@@ -101,4 +98,4 @@ services:
     container_name: emitter
     hostname: emitter
     depends_on:
-      - grafana
+      - kafka
