@@ -1,0 +1,7 @@
+# Default ignored files
+/shelf/
+/workspace.xml
+.idea
+emitter/target/
+listener/target/
+executionservice/target/
