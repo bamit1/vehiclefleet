@@ -10,4 +10,8 @@ public class FleetUpdateEvent {
     private int speed;
     private int fuelLevel;
     private long time;
+
+    public long getTime() {
+        return (time / (1000 * 60)) * 1000 * 60;
+    }
 }
