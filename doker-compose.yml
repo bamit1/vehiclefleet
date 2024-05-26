@@ -10,6 +10,15 @@ services:
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
 
+  redis:
+    image: redis:latest
+    container_name: redis
+    hostname: redis
+    ports:
+      - "6379:6379"
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+      - REDIS_PORT=6379
 
   kafka:
     image: confluentinc/cp-kafka:7.3.2
@@ -30,17 +39,6 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
     depends_on:
       - zookeeper
-
-  listener:
-    build:
-      context: ./listener/
-      dockerfile: Dockerfile
-    container_name: listener
-    hostname: listener
-    ports:
-      - "8081:8081"
-    depends_on:
-      - kafka
 
   clickhouse:
     image: clickhouse/clickhouse-server
@@ -72,6 +70,27 @@ services:
     depends_on:
       - clickhouse
 
+  listener:
+    build:
+      context: ./listener/
+      dockerfile: Dockerfile
+    container_name: listener
+    hostname: listener
+    ports:
+      - "8081:8081"
+    depends_on:
+      - kafka
+
+  executionservice:
+    build:
+      context: ./executionservice/
+      dockerfile: Dockerfile
+    container_name: executionservice
+    hostname: executionservice
+    depends_on:
+      - kafka
+      - redis
+
   emitter:
     build:
       context: ./emitter/
@@ -79,4 +98,4 @@ services:
     container_name: emitter
     hostname: emitter
     depends_on:
-      - grafana
+      - kafka
