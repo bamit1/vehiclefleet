@@ -32,13 +32,15 @@ FROM fleet_events_queue;
 
 CREATE TABLE IF NOT EXISTS fleet_events_daily (
     vehicleId String,
-    distance Decimal64(2),
-    overSpeed Bool,
+    distance AggregateFunction(sum, Decimal64(2)),
+    overSpeed AggregateFunction(max, Bool),
     time Date
-) ENGINE = MergeTree ORDER BY (vehicleId, time);
+) ENGINE = AggregatingMergeTree ORDER BY (time, vehicleId);
 
 
 CREATE MATERIALIZED VIEW IF NOT EXISTS fleet_events_daily_mv TO fleet_events_daily AS
-SELECT vehicleId, sum(distance) as distance, max(overSpeed) as overSpeed, toDate(toDateTime(avg(time)/1000)) as time
+SELECT vehicleId, sumState(distance) as distance, maxState(overSpeed) as overSpeed, toDate(toDateTime(time/1000)) as time
 FROM fleet_events
-GROUP BY vehicleId;
+GROUP BY time, vehicleId;
+
+-- select vehicleId, sumMerge(distance), maxMerge(overSpeed), time from fleet_events_daily4 group by vehicleId, time
