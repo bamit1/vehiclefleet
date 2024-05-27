@@ -1,107 +1,84 @@
 package com.vehiclefleet.executionservice.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.vehiclefleet.executionservice.aggregators.EuclideanAggregator;
 import com.vehiclefleet.executionservice.models.FleetEvent;
 import com.vehiclefleet.executionservice.models.FleetUpdateEvent;
+import com.vehiclefleet.executionservice.redis.CacheClient;
+import com.vehiclefleet.executionservice.utils.Bucketizer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 
-import java.sql.Time;
 import java.util.*;
-import java.util.stream.Collectors;
+
+import static com.vehiclefleet.executionservice.utils.Constants.LAST_PROCESSED_KEY_PREFIX;
+import static com.vehiclefleet.executionservice.utils.Constants.SORTED_SET_KEY_PREFIX;
 
 @Slf4j
 @Component
 public class EventProcessorService {
 
-
-    private static final ObjectMapper objectMapper = new ObjectMapper();
-
     private @Value("${processor.triggerInterval}") long triggerInterval;
-    private @Value("${processor.bucketInterval}") long bucketInterval;
-    private @Value("${processor.overSpeedThreshold}") int overSpeedThreshold;
-
-    private static final String SORTED_SET_KEY_PREFIX = "sortedSet:";
-    private static final String LAST_PROCESSED_KEY_PREFIX = "lastProcessed:";
 
     @Autowired
-    private KafkaTemplate<String, Object> kafkaTemplate;
+    private KafkaTemplate<String, FleetEvent> kafkaTemplate;
 
     @Autowired
-    private RedisTemplate<String, FleetUpdateEvent> redisTemplate;
+    private CacheClient cacheClient;
+    @Autowired
+    private EuclideanAggregator aggregator;
+    @Autowired
+    private Bucketizer bucketizer;
 
-    public void processFleetUpdateEvent(String event) throws JsonProcessingException {
-        FleetUpdateEvent fleetUpdateEvent = objectMapper.readValue(event, FleetUpdateEvent.class);
-
-        process(fleetUpdateEvent);
-
-        redisTemplate.opsForZSet().add(SORTED_SET_KEY_PREFIX + fleetUpdateEvent.getVehicleId(), fleetUpdateEvent, fleetUpdateEvent.getTime());
+    /**
+     * for every latest update event, checks the last processed from cache and
+     * processes the pending events based on {@code triggerInterval} and
+     * inserts the latest event in the cache
+     * */
+    public void processFleetUpdateEvent(FleetUpdateEvent fleetUpdateEvent) {
+        FleetUpdateEvent lastProcessed = getLastProcessedEvent(fleetUpdateEvent);
+        if (lastProcessed != null && fleetUpdateEvent.getTime() - lastProcessed.getTime() >= triggerInterval) {
+            processPendingEvents(fleetUpdateEvent, lastProcessed);
+        }
+        cacheClient.addToSet(SORTED_SET_KEY_PREFIX + fleetUpdateEvent.getVehicleId(), fleetUpdateEvent);
     }
 
-    private void process(FleetUpdateEvent event) {
-        FleetUpdateEvent lastUpdated = redisTemplate.opsForValue().get(LAST_PROCESSED_KEY_PREFIX + event.getVehicleId());
-        if (lastUpdated == null) {
-            redisTemplate.opsForValue().set(LAST_PROCESSED_KEY_PREFIX + event.getVehicleId(), event);
-            return;
-        }
-        if (event.getTime() - lastUpdated.getTime() < triggerInterval) return;
+    /**
+     * Fetches the processing pending events from cache, then bucketizes and aggregates them,
+     * then publishes the aggregated data to kafka and updates the cache.
+     * */
+    private void processPendingEvents(FleetUpdateEvent fleetUpdateEvent, FleetUpdateEvent lastProcessed) {
+        // fetch pending events from cache
+        Set<FleetUpdateEvent> events = cacheClient.getFromSet(SORTED_SET_KEY_PREFIX + fleetUpdateEvent.getVehicleId(), 0, -1);
 
-        Set<FleetUpdateEvent> events = redisTemplate.opsForZSet().range(SORTED_SET_KEY_PREFIX + event.getVehicleId(), 0, -1);
+        // bucketize the events based on time
+        Map<Long, List<FleetUpdateEvent>> buckets = bucketizer.createBuckets(lastProcessed, events);
 
-        Map<Long, List<FleetUpdateEvent>> buckets = createBuckets(lastUpdated, events);
-        List<FleetEvent> fleetEvents = buckets.values().stream().map(this::aggregate).toList();
+        // aggregate each bucket
+        List<FleetEvent> fleetEvents = buckets.values().stream().map(aggregator::aggregate).toList();
 
+        // publish the aggregated data
         fleetEvents.forEach(fleetEvent -> kafkaTemplate.send("fleet-events", fleetEvent));
 
-        redisTemplate.opsForZSet().remove(SORTED_SET_KEY_PREFIX + event.getVehicleId(), events.toArray());
-        redisTemplate.opsForValue().set(LAST_PROCESSED_KEY_PREFIX + event.getVehicleId(), event);
+        // remove the processed events from cache
+        cacheClient.removeFromSet(SORTED_SET_KEY_PREFIX + fleetUpdateEvent.getVehicleId(), events.toArray(FleetUpdateEvent[]::new));
+
+        // update last processed
+        cacheClient.setLastProcessed(LAST_PROCESSED_KEY_PREFIX + fleetUpdateEvent.getVehicleId(), fleetUpdateEvent);
     }
 
-
-    private Map<Long, List<FleetUpdateEvent>> createBuckets(FleetUpdateEvent last, Set<FleetUpdateEvent> events) {
-        List<FleetUpdateEvent> eventsList = new ArrayList<>(events);
-        Map<Long, List<FleetUpdateEvent>> buckets = new HashMap<>();
-        for (int i = 0; i < events.size(); i++) {
-            long time = eventsList.get(i).getTime();
-            long floor = (time / (bucketInterval)) * bucketInterval;
-            if (!buckets.containsKey(floor)) {
-                buckets.put(floor, new ArrayList<>());
-                buckets.get(floor).add(last);
-            }
-            buckets.get(floor).add(eventsList.get(i));
-            last = eventsList.get(i);
+    /**
+     * Fetch last processed from cache for a given vehicle
+     * if last processed is not in cache, update the cache with the current event
+     * */
+    private FleetUpdateEvent getLastProcessedEvent(FleetUpdateEvent fleetUpdateEvent) {
+        FleetUpdateEvent lastProcessed = cacheClient.getLastProcessed(LAST_PROCESSED_KEY_PREFIX + fleetUpdateEvent.getVehicleId());
+        if (lastProcessed == null) {
+            cacheClient.setLastProcessed(LAST_PROCESSED_KEY_PREFIX + fleetUpdateEvent.getVehicleId(), fleetUpdateEvent);
         }
-        return buckets;
-    }
-
-    private FleetEvent aggregate(List<FleetUpdateEvent> events) {
-        double distance = 0.0;
-        int speed = 0;
-        int fuelLevel = 0;
-        boolean overSpeed = true;
-        for (int i = 1; i < events.size(); i++) {
-            distance += calculateEuclideanDistance(events.get(i - 1), events.get(i));
-            speed += events.get(i).getSpeed();
-            fuelLevel += events.get(i).getFuelLevel();
-            overSpeed = events.get(i).getSpeed() >= overSpeedThreshold && overSpeed;
-        }
-        return FleetEvent.builder()
-                .vehicleId(events.get(0).getVehicleId())
-                .distance(distance)
-                .avgSpeed(speed / (events.size() - 1))
-                .avgFuelLevel(fuelLevel / (events.size() - 1))
-                .overSpeed(overSpeed)
-                .time(events.get(1).getTime())
-                .build();
-    }
-
-    private double calculateEuclideanDistance(FleetUpdateEvent x, FleetUpdateEvent y) {
-        return Math.sqrt(Math.pow(y.getLng() - x.getLng(), 2) + Math.pow(y.getLat() - x.getLat(), 2));
+        return lastProcessed;
     }
 }
 

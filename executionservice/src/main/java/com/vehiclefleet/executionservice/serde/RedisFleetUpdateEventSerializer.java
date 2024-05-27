@@ -1,4 +1,4 @@
-package com.vehiclefleet.executionservice.redis;
+package com.vehiclefleet.executionservice.serde;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -8,7 +8,7 @@ import org.springframework.data.redis.serializer.SerializationException;
 
 import java.io.IOException;
 
-public class FleetUpdateEventSerializer implements RedisSerializer<FleetUpdateEvent> {
+public class RedisFleetUpdateEventSerializer implements RedisSerializer<FleetUpdateEvent> {
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
